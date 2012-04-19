@@ -20,7 +20,7 @@
 
 .module JUMPTABLE
 .globl USB_AutoVector
-.globl USB_Jump_Table
+.globl USB_jump_table
 
 ;--------------------------------------------------------------------------;
 ; Interrupt Vectors                                                        ;

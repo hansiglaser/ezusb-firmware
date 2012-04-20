@@ -145,6 +145,8 @@ __code struct usb_string_descriptor* __code en_string_descriptors[4] = {
   &strConfigDescr
 };
 
+static void usb_handle_setup_data(void);
+
 void sudav_isr(void) __interrupt SUDAV_ISR
 {
   CLEAR_IRQ();
@@ -205,7 +207,7 @@ void ep7out_isr(void)   __interrupt EP7OUT_ISR   { }
  *  specified in \a ep
  * @return on failure: NULL
  */
-__xdata uint8_t* usb_get_endpoint_cs_reg(uint8_t ep)
+static __xdata uint8_t* usb_get_endpoint_cs_reg(uint8_t ep)
 {
   /* Mask direction bit */
   uint8_t ep_num = ep & 0x7F;
@@ -240,7 +242,7 @@ __xdata uint8_t* usb_get_endpoint_cs_reg(uint8_t ep)
   return NULL;
 }
 
-void usb_reset_data_toggle(uint8_t ep)
+static void usb_reset_data_toggle(uint8_t ep)
 {
   /* TOGCTL register:
      +----+-----+-----+------+-----+-------+-------+-------+
@@ -267,7 +269,7 @@ void usb_reset_data_toggle(uint8_t ep)
  * @return on success: true
  * @return on failure: false
  */
-bool usb_handle_get_status(void)
+static bool usb_handle_get_status(void)
 {
   uint8_t *ep_cs;
 
@@ -320,7 +322,7 @@ bool usb_handle_get_status(void)
  * @return on success: true
  * @return on failure: false
  */
-bool usb_handle_clear_feature(void)
+static bool usb_handle_clear_feature(void)
 {
   __xdata uint8_t *ep_cs;
 
@@ -356,7 +358,7 @@ bool usb_handle_clear_feature(void)
  * @return on success: true
  * @return on failure: false
  */
-bool usb_handle_set_feature(void)
+static bool usb_handle_set_feature(void)
 {
   __xdata uint8_t *ep_cs;
 
@@ -394,7 +396,7 @@ bool usb_handle_set_feature(void)
  * @return on success: true
  * @return on failure: false
  */
-bool usb_handle_get_descriptor(void)
+static bool usb_handle_get_descriptor(void)
 {
   __xdata uint8_t descriptor_type;
   __xdata uint8_t descriptor_index;
@@ -438,7 +440,7 @@ bool usb_handle_get_descriptor(void)
 /**
  * Handle SET_INTERFACE request.
  */
-void usb_handle_set_interface(void)
+static void usb_handle_set_interface(void)
 {
   /* Reset Data Toggle */
   usb_reset_data_toggle(USB_DIR_IN  | 2);
@@ -455,7 +457,7 @@ void usb_handle_set_interface(void)
 /**
  * Handle the arrival of a USB Control Setup Packet.
  */
-void usb_handle_setup_data(void)
+static void usb_handle_setup_data(void)
 {
   switch (setup_data.bRequest) {
     case GET_STATUS:

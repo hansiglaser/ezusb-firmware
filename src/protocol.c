@@ -18,14 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <stdbool.h>
+
+#include "reg_ezusb.h"
+
 #include "protocol.h"
 #include "jtag.h"
 #include "delay.h"
 #include "usb.h"
 #include "io.h"
 #include "msgtypes.h"
-
-#include "reg_ezusb.h"
 
 /**
  * @file Implementation of the OpenULINK communication protocol.

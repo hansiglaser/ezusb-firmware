@@ -18,12 +18,32 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "main.h"
-
 #include "io.h"
 #include "usb.h"
 #include "protocol.h"
 
+/**
+ * Interrupt Vectors
+ *
+ * All ISRs must be declared in the file where main() is
+ * (see http://sdcc.sourceforge.net/doc/sdccman.html/node65.html)
+ *
+ * Note about USB interrupts:
+ * We don't write interrupt numbers here because we don't want the compiler to
+ * automatically place LJPMs into the interrupt vector table. These ISRs are
+ * called from the USB interrupt vector table defined in USBJmpTb.a51. The
+ * downside of using this self-built jump table is that we have to provide
+ * ISRs (more precise: labels) for all the possible interrupts.
+ *
+ * Unfortunately when linking this file to the final .ihx file, some compiler
+ * specific libraries are added (see usb.lnk: libsdcc, libint, liblong,
+ * libfloat). These would be placed to some free space which is incidentially
+ * exactly where the 8051 interrupt vector table is. Therefore we use _one_
+ * ISR vector (here 13) to "reserve" that space.
+ */
+// I2C
+//extern void i2c_isr(void)      __interrupt I2C_VECT;
+// USB
 extern void sudav_isr(void)    __interrupt SUDAV_ISR;
 extern void sof_isr(void)      __interrupt;
 extern void sutok_isr(void)    __interrupt;
@@ -80,7 +100,7 @@ int main(void)
   io_init();
   usb_init();
 
-  /* Enable Interrupts */
+  /* Globally enable interrupts */
   EA = 1;
 
   /* Begin executing command(s). This function never returns. */

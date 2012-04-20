@@ -20,6 +20,8 @@
 
 #include "delay.h"
 
+#define NOP {__asm nop __endasm;}
+
 void delay_5us(void)
 {
   NOP;

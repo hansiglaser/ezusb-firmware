@@ -23,8 +23,6 @@
 
 #include <stdint.h>
 
-#define NOP {__asm nop __endasm;}
-
 void jtag_scan_in(uint8_t out_offset, uint8_t in_offset);
 void jtag_slow_scan_in(uint8_t out_offset, uint8_t in_offset);
 

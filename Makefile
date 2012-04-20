@@ -66,8 +66,7 @@ LDFLAGS = --code-loc 0x0000 --code-size $(CODE_SIZE) --xram-loc $(XRAM_LOC) \
 
 # list of base object files
 OBJECTS = main.rel usb.rel protocol.rel jtag.rel delay.rel USBJmpTb.rel
-HEADERS = $(INCLUDE_DIR)/main.h         \
-          $(INCLUDE_DIR)/usb.h          \
+HEADERS = $(INCLUDE_DIR)/usb.h          \
           $(INCLUDE_DIR)/protocol.h     \
           $(INCLUDE_DIR)/jtag.h         \
           $(INCLUDE_DIR)/delay.h        \

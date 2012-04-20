@@ -252,16 +252,6 @@ enum usb_isr {
 
 /*************************** Function Prototypes ***************************/
 
-__xdata uint8_t* usb_get_endpoint_cs_reg(uint8_t ep);
-void usb_reset_data_toggle(uint8_t ep);
-
-bool usb_handle_get_status(void);
-bool usb_handle_clear_feature(void);
-bool usb_handle_set_feature(void);
-bool usb_handle_get_descriptor(void);
-void usb_handle_set_interface(void);
-
-void usb_handle_setup_data(void);
 void usb_init(void);
 
 #endif

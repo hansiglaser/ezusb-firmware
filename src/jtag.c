@@ -22,7 +22,6 @@
 
 #include "io.h"
 #include "msgtypes.h"
-#include "common.h"
 
 #include <stdbool.h>
 

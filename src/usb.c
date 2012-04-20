@@ -32,6 +32,13 @@
 #include "delay.h"
 #include "io.h"
 
+/// USB idVendor value
+#define ID_VENDOR   0xC251
+/// USB idProduct value
+#define ID_PRODUCT  0x2710
+/// USB bcdDevice value, Release Number (in BCD)
+#define BCD_DEVICE  0x0100
+
 /* Also update external declarations in "include/usb.h" if making changes to
  * these variables! */
 volatile bool EP2_out = 0;
@@ -59,15 +66,15 @@ volatile __xdata __at 0x7FE8 struct setup_data setup_data;
 
 __code struct usb_device_descriptor device_descriptor = {
   /* .bLength = */             sizeof(struct usb_device_descriptor),
-  /* .bDescriptorType = */     DESCRIPTOR_TYPE_DEVICE,
-  /* .bcdUSB = */              0x0110, /* BCD: 01.00 (Version 1.0 USB spec) */
-  /* .bDeviceClass = */        0xFF,   /* 0xFF = vendor-specific */
-  /* .bDeviceSubClass = */     0xFF,
-  /* .bDeviceProtocol = */     0xFF,
+  /* .bDescriptorType = */     USB_DESCRIPTOR_TYPE_DEVICE,
+  /* .bcdUSB = */              0x0110, /* BCD: 01.10 (Version 1.1 USB spec) */
+  /* .bDeviceClass = */        USB_CLASS_VENDOR_SPEC,
+  /* .bDeviceSubClass = */     USB_CLASS_VENDOR_SPEC,
+  /* .bDeviceProtocol = */     USB_PROTOCOL_VENDOR_SPEC,
   /* .bMaxPacketSize0 = */     64,
-  /* .idVendor = */            0xC251,
-  /* .idProduct = */           0x2710,
-  /* .bcdDevice = */           0x0100,
+  /* .idVendor = */            ID_VENDOR,
+  /* .idProduct = */           ID_PRODUCT,
+  /* .bcdDevice = */           BCD_DEVICE,
   /* .iManufacturer = */       1,
   /* .iProduct = */            2,
   /* .iSerialNumber = */       3,
@@ -78,7 +85,7 @@ __code struct usb_device_descriptor device_descriptor = {
 
 __code struct usb_config_descriptor config_descriptor = {
   /* .bLength = */             sizeof(struct usb_config_descriptor),
-  /* .bDescriptorType = */     DESCRIPTOR_TYPE_CONFIGURATION,
+  /* .bDescriptorType = */     USB_DESCRIPTOR_TYPE_CONFIGURATION,
   /* .wTotalLength = */        sizeof(struct usb_config_descriptor) +
                                sizeof(struct usb_interface_descriptor) +
                                (NUM_ENDPOINTS *
@@ -86,44 +93,44 @@ __code struct usb_config_descriptor config_descriptor = {
   /* .bNumInterfaces = */      1,
   /* .bConfigurationValue = */ 1,
   /* .iConfiguration = */      4,     /* String describing this configuration */
-  /* .bmAttributes = */        0x80,  /* Only MSB set according to USB spec */
+  /* .bmAttributes = */        USB_CONFIG_ATTRIB_RESERVED,  /* Only MSB set according to USB spec */
   /* .MaxPower = */            50     /* 100 mA */
 };
 
 __code struct usb_interface_descriptor interface_descriptor00 = {
   /* .bLength = */             sizeof(struct usb_interface_descriptor),
-  /* .bDescriptorType = */     DESCRIPTOR_TYPE_INTERFACE,
+  /* .bDescriptorType = */     USB_DESCRIPTOR_TYPE_INTERFACE,
   /* .bInterfaceNumber = */    0,
   /* .bAlternateSetting = */   0,
   /* .bNumEndpoints = */       NUM_ENDPOINTS,
-  /* .bInterfaceClass = */     0xFF,
-  /* .bInterfaceSubclass = */  0xFF,
-  /* .bInterfaceProtocol = */  0xFF,
+  /* .bInterfaceClass = */     USB_CLASS_VENDOR_SPEC,
+  /* .bInterfaceSubclass = */  USB_CLASS_VENDOR_SPEC,
+  /* .bInterfaceProtocol = */  USB_PROTOCOL_VENDOR_SPEC,
   /* .iInterface = */          0
 };
 
 __code struct usb_endpoint_descriptor Bulk_EP2_IN_Endpoint_Descriptor = {
   /* .bLength = */             sizeof(struct usb_endpoint_descriptor),
-  /* .bDescriptorType = */     0x05,
+  /* .bDescriptorType = */     USB_DESCRIPTOR_TYPE_ENDPOINT,
   /* .bEndpointAddress = */    2 | USB_DIR_IN,
-  /* .bmAttributes = */        0x02,
+  /* .bmAttributes = */        USB_ENDPOINT_TYPE_BULK,
   /* .wMaxPacketSize = */      64,
   /* .bInterval = */           0
 };
 
 __code struct usb_endpoint_descriptor Bulk_EP2_OUT_Endpoint_Descriptor = {
   /* .bLength = */             sizeof(struct usb_endpoint_descriptor),
-  /* .bDescriptorType = */     0x05,
+  /* .bDescriptorType = */     USB_DESCRIPTOR_TYPE_ENDPOINT,
   /* .bEndpointAddress = */    2 | USB_DIR_OUT,
-  /* .bmAttributes = */        0x02,
+  /* .bmAttributes = */        USB_ENDPOINT_TYPE_BULK,
   /* .wMaxPacketSize = */      64,
   /* .bInterval = */           0
 };
 
 __code struct usb_language_descriptor language_descriptor = {
   /* .bLength =  */            4,
-  /* .bDescriptorType = */     DESCRIPTOR_TYPE_STRING,
-  /* .wLANGID = */             {0x0409 /* US English */}
+  /* .bDescriptorType = */     USB_DESCRIPTOR_TYPE_STRING,
+  /* .wLANGID = */             {USB_LANG_ENGLISH_US}
 };
 
 __code struct usb_string_descriptor strManufacturer =
@@ -211,32 +218,32 @@ void ep7out_isr(void)   __interrupt EP7OUT_ISR   { }
 static __xdata uint8_t* usb_get_endpoint_cs_reg(uint8_t ep)
 {
   /* Mask direction bit */
-  uint8_t ep_num = ep & 0x7F;
+  uint8_t ep_num = ep & USB_ENDPOINT_ADDRESS_MASK;
 
   switch (ep_num) {
   case 0:
     return &EP0CS;
     break;
   case 1:
-    return ep & 0x80 ? &IN1CS : &OUT1CS;
+    return ep & USB_ENDPOINT_DIR_MASK ? &IN1CS : &OUT1CS;
     break;
   case 2:
-    return ep & 0x80 ? &IN2CS : &OUT2CS;
+    return ep & USB_ENDPOINT_DIR_MASK ? &IN2CS : &OUT2CS;
     break;
   case 3:
-    return ep & 0x80 ? &IN3CS : &OUT3CS;
+    return ep & USB_ENDPOINT_DIR_MASK ? &IN3CS : &OUT3CS;
     break;
   case 4:
-    return ep & 0x80 ? &IN4CS : &OUT4CS;
+    return ep & USB_ENDPOINT_DIR_MASK ? &IN4CS : &OUT4CS;
     break;
   case 5:
-    return ep & 0x80 ? &IN5CS : &OUT5CS;
+    return ep & USB_ENDPOINT_DIR_MASK ? &IN5CS : &OUT5CS;
     break;
   case 6:
-    return ep & 0x80 ? &IN6CS : &OUT6CS;
+    return ep & USB_ENDPOINT_DIR_MASK ? &IN6CS : &OUT6CS;
     break;
   case 7:
-    return ep & 0x80 ? &IN7CS : &OUT7CS;
+    return ep & USB_ENDPOINT_DIR_MASK ? &IN7CS : &OUT7CS;
     break;
   }
 
@@ -406,21 +413,21 @@ static bool usb_handle_get_descriptor(void)
   descriptor_index = setup_data.wValue & 0x00ff;
 
   switch (descriptor_type) {
-  case DESCRIPTOR_TYPE_DEVICE:
+  case USB_DESCRIPTOR_TYPE_DEVICE:
     SUDPTRH = HI8(&device_descriptor);
     SUDPTRL = LO8(&device_descriptor);
     break;
-  case DESCRIPTOR_TYPE_CONFIGURATION:
+  case USB_DESCRIPTOR_TYPE_CONFIGURATION:
     SUDPTRH = HI8(&config_descriptor);
     SUDPTRL = LO8(&config_descriptor);
     break;
-  case DESCRIPTOR_TYPE_STRING:
+  case USB_DESCRIPTOR_TYPE_STRING:
     if (setup_data.wIndex == 0) {
       /* Supply language descriptor */
       SUDPTRH = HI8(&language_descriptor);
       SUDPTRL = LO8(&language_descriptor);
     }
-    else if (setup_data.wIndex == 0x0409 /* US English */) {
+    else if (setup_data.wIndex == USB_LANG_ENGLISH_US) {
       /* Supply string descriptor */
       SUDPTRH = HI8(en_string_descriptors[descriptor_index - 1]);
       SUDPTRL = LO8(en_string_descriptors[descriptor_index - 1]);

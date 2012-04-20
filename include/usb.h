@@ -40,13 +40,57 @@
 /*********** USB descriptors. See section 9.5 of the USB 1.1 spec **********/
 
 /* USB Descriptor Types. See USB 1.1 spec, page 187, table 9-5 */
-#define DESCRIPTOR_TYPE_DEVICE         0x01
-#define DESCRIPTOR_TYPE_CONFIGURATION  0x02
-#define DESCRIPTOR_TYPE_STRING         0x03
-#define DESCRIPTOR_TYPE_INTERFACE      0x04
-#define DESCRIPTOR_TYPE_ENDPOINT       0x05
+#define USB_DESCRIPTOR_TYPE_DEVICE         0x01
+#define USB_DESCRIPTOR_TYPE_CONFIGURATION  0x02
+#define USB_DESCRIPTOR_TYPE_STRING         0x03
+#define USB_DESCRIPTOR_TYPE_INTERFACE      0x04
+#define USB_DESCRIPTOR_TYPE_ENDPOINT       0x05
 
-#define STR_DESCR(len,...) { len*2+2, DESCRIPTOR_TYPE_STRING, { __VA_ARGS__ } }
+#define USB_DESCRIPTOR_TYPE_HID            0x21
+#define USB_DESCRIPTOR_TYPE_REPORT         0x22
+#define USB_DESCRIPTOR_TYPE_PHYSICAL       0x23
+#define USB_DESCRIPTOR_TYPE_HUB            0x29
+
+/* USB Device and/or Interface Classes */
+#define USB_CLASS_PER_INTERFACE         0       /* only used for bDeviceClass */
+#define USB_CLASS_AUDIO                 1
+#define USB_CLASS_COMM                  2
+#define USB_CLASS_HID                   3
+#define USB_CLASS_PRINTER               7
+#define USB_CLASS_PTP                   6
+#define USB_CLASS_MASS_STORAGE          8
+#define USB_CLASS_HUB                   9
+#define USB_CLASS_DATA                  10
+#define USB_CLASS_VENDOR_SPEC           0xff
+
+/* use for usb_device_descriptor.bDeviceProtocol, USB 1.1 spec, page 198, table 9-7 */
+#define USB_PROTOCOL_VENDOR_SPEC        0xff
+
+/* use for usb_config_descriptor.bmAttributes, USB 1.1 spec, page 200, table 9-8 */
+#define USB_CONFIG_ATTRIB_RESERVED      0x80
+#define USB_CONFIG_ATTRIB_SELF_POWERED  0x40
+#define USB_CONFIG_ATTRIB_REMOTE_WAKEUP 0x20
+
+/* use for usb_endpoint_descriptor.bEndpointAddress, USB 1.1 spec, page 203, table 9-10 */
+#define USB_ENDPOINT_ADDRESS_MASK       0x0f
+#define USB_ENDPOINT_DIR_MASK           0x80
+
+/* use for usb_endpoint_descriptor.bmAttributes, USB 1.1 spec, page 204, table 9-10 */
+#define USB_ENDPOINT_TYPE_MASK          0x03
+#define USB_ENDPOINT_TYPE_CONTROL       0
+#define USB_ENDPOINT_TYPE_ISOCHRONOUS   1
+#define USB_ENDPOINT_TYPE_BULK          2
+#define USB_ENDPOINT_TYPE_INTERRUPT     3
+
+#define USB_LANG_ENGLISH_US   (0x009 | (0x01 << 10))  
+#define USB_LANG_ENGLISH_UK   (0x009 | (0x02 << 10))  
+#define USB_LANG_GERMAN       (0x007 | (0x01 << 10)) 
+#define USB_LANG_GERMAN_CH    (0x007 | (0x02 << 10))
+#define USB_LANG_GERMAN_AT    (0x007 | (0x03 << 10)) 
+#define USB_LANG_GERMAN_LU    (0x007 | (0x04 << 10)) 
+#define USB_LANG_GERMAN_LI    (0x007 | (0x05 << 10)) 
+
+#define STR_DESCR(len,...) { len*2+2, USB_DESCRIPTOR_TYPE_STRING, { __VA_ARGS__ } }
 
 /** USB Device Descriptor. See USB 1.1 spec, pp. 196 - 198 */
 struct usb_device_descriptor {

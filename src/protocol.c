@@ -79,8 +79,6 @@ void execute_set_led_command(void)
 /**
  * Executes one command and updates global command indexes.
  *
- * @param index the index of the Bulk EP2-OUT data buffer at which the
- *  command ID is stored.
  * @return true if this command was the last command.
  * @return false if there are more commands within the current contents of the
  *  Bulk EP2-OUT data buffer.

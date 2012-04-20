@@ -1,6 +1,7 @@
 /***************************************************************************
  *   Copyright (C) 2011 by Martin Schmoelzer                               *
  *   <martin.schmoelzer@student.tuwien.ac.at>                              *
+ *   Copyright (C) 2012 by Johann Glaser <Johann.Glaser@gmx.at>            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *

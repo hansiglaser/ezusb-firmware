@@ -282,7 +282,7 @@ static bool usb_handle_get_status(void)
   uint8_t *ep_cs;
 
   switch (setup_data.bmRequestType) {
-  case GS_DEVICE:
+  case USB_RECIP_GS_DEVICE:
     /* Two byte response: Byte 0, Bit 0 = self-powered, Bit 1 = remote wakeup.
      *                    Byte 1: reserved, reset to zero */
     IN0BUF[0] = 0;
@@ -291,7 +291,7 @@ static bool usb_handle_get_status(void)
     /* Send response */
     IN0BC = 2;
     break;
-  case GS_INTERFACE:
+  case USB_RECIP_GS_INTERFACE:
     /* Always return two zero bytes according to USB 1.1 spec, p. 191 */
     IN0BUF[0] = 0;
     IN0BUF[1] = 0;
@@ -299,7 +299,7 @@ static bool usb_handle_get_status(void)
     /* Send response */
     IN0BC = 2;
     break;
-  case GS_ENDPOINT:
+  case USB_RECIP_GS_ENDPOINT:
     /* Get stall bit for endpoint specified in low byte of wIndex */
     ep_cs = usb_get_endpoint_cs_reg(setup_data.wIndex & 0xff);
 
@@ -335,11 +335,11 @@ static bool usb_handle_clear_feature(void)
   __xdata uint8_t *ep_cs;
 
   switch (setup_data.bmRequestType) {
-  case CF_DEVICE:
+  case USB_RECIP_CF_DEVICE:
     /* Clear remote wakeup not supported: stall EP0 */
     STALL_EP0();
     break;
-  case CF_ENDPOINT:
+  case USB_RECIP_CF_ENDPOINT:
     if (setup_data.wValue == 0) {
       /* Unstall the endpoint specified in wIndex */
       ep_cs = usb_get_endpoint_cs_reg(setup_data.wIndex);
@@ -371,12 +371,12 @@ static bool usb_handle_set_feature(void)
   __xdata uint8_t *ep_cs;
 
   switch (setup_data.bmRequestType) {
-  case SF_DEVICE:
+  case USB_RECIP_SF_DEVICE:
     if (setup_data.wValue == 2) {
       return true;
     }
     break;
-  case SF_ENDPOINT:
+  case USB_RECIP_SF_ENDPOINT:
     if (setup_data.wValue == 0) {
       /* Stall the endpoint specified in wIndex */
       ep_cs = usb_get_endpoint_cs_reg(setup_data.wIndex);
@@ -468,12 +468,12 @@ static void usb_handle_set_interface(void)
 static void usb_handle_setup_data(void)
 {
   switch (setup_data.bRequest) {
-    case GET_STATUS:
+    case USB_REQ_GET_STATUS:
       if (!usb_handle_get_status()) {
         STALL_EP0();
       }
       break;
-    case CLEAR_FEATURE:
+    case USB_REQ_CLEAR_FEATURE:
       if (!usb_handle_clear_feature()) {
         STALL_EP0();
       }
@@ -482,40 +482,40 @@ static void usb_handle_setup_data(void)
       /* Reserved values */
       STALL_EP0();
       break;
-    case SET_FEATURE:
+    case USB_REQ_SET_FEATURE:
       if (!usb_handle_set_feature()) {
         STALL_EP0();
       }
       break;
-    case SET_ADDRESS:
+    case USB_REQ_SET_ADDRESS:
       /* Handled by USB core */
       break;
-    case SET_DESCRIPTOR:
+    case USB_REQ_SET_DESCRIPTOR:
       /* Set Descriptor not supported. */
       STALL_EP0();
       break;
-    case GET_DESCRIPTOR:
+    case USB_REQ_GET_DESCRIPTOR:
       if (!usb_handle_get_descriptor()) {
         STALL_EP0();
       }
       break;
-    case GET_CONFIGURATION:
+    case USB_REQ_GET_CONFIGURATION:
       /* OpenULINK has only one configuration, return its index */
       IN0BUF[0] = config_descriptor.bConfigurationValue;
       IN0BC = 1;
       break;
-    case SET_CONFIGURATION:
+    case USB_REQ_SET_CONFIGURATION:
       /* OpenULINK has only one configuration -> nothing to do */
       break;
-    case GET_INTERFACE:
+    case USB_REQ_GET_INTERFACE:
       /* OpenULINK only has one interface, return its number */
       IN0BUF[0] = interface_descriptor00.bInterfaceNumber;
       IN0BC = 1;
       break;
-    case SET_INTERFACE:
+    case USB_REQ_SET_INTERFACE:
       usb_handle_set_interface();
       break;
-    case SYNCH_FRAME:
+    case USB_REQ_SYNCH_FRAME:
       /* Isochronous endpoints not used -> nothing to do */
       break;
     default:

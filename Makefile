@@ -41,6 +41,8 @@ else
   $(error Could not find a suitable assembler.)
 endif
 
+IHXFILE = firmware.ihx
+
 # SDCC produces quite messy Intel HEX files. This tool is be used to re-format
 # those files. It is not required for the firmware download functionality in
 # the OpenOCD driver, but the resulting file is smaller.
@@ -81,10 +83,10 @@ HEADERS = $(INCLUDE_DIR)/usb.h          \
 # Targets which are executed even when identically named file is present.
 .PHONY: all, clean
 
-all: ulink_firmware.ihx
-	$(SIZE) ulink_firmware.ihx
+all: $(IHXFILE)
+	$(SIZE) $(IHXFILE)
 
-ulink_firmware.ihx: $(OBJECTS)
+$(IHXFILE): $(OBJECTS)
 	$(CC) -mmcs51 $(LDFLAGS) -o $@ $^
 
 # Rebuild every C module (there are only 5 of them) if any header changes.
@@ -106,5 +108,5 @@ endif
 clean:
 	rm -f *.asm *.lst *.rel *.rst *.sym *.ihx *.lnk *.map *.mem
 
-hex: ulink_firmware.ihx
-	$(PACKIHX) ulink_firmware.ihx > ulink_firmware.hex
+hex: $(IHXFILE)
+	$(PACKIHX) $(IHXFILE) > $(basename $(IHXFILE)).hex

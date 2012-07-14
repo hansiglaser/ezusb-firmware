@@ -27,12 +27,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define NULL        (void*)0;
-
-/* High and Low byte of a word (uint16_t) */
-#define HI8(word)   (uint8_t)(((uint16_t)word >> 8) & 0xff)
-#define LO8(word)   (uint8_t)((uint16_t)word & 0xff)
-
 /* Convenience functions */
 #define STALL_EP0()   EP0CS |= EP0STALL
 #define CLEAR_IRQ()   EXIF &= ~USBINT
@@ -172,8 +166,9 @@ struct setup_data {
 
 /* External declarations for variables that need to be accessed outside of
  * the USB module */
-extern volatile bool EP2_out;
-extern volatile bool EP2_in;
+extern volatile bool Semaphore_Command;
+extern volatile bool Semaphore_EP2_out;
+extern volatile bool Semaphore_EP2_in;
 extern volatile __xdata __at 0x7FE8 struct setup_data setup_data;
 
 /*

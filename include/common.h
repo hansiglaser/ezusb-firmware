@@ -19,29 +19,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef __JTAG_H
-#define __JTAG_H
+#ifndef __COMMON_H
+#define __COMMON_H
 
 #include <stdint.h>
 
-void jtag_scan_in(uint8_t out_offset, uint8_t in_offset);
-void jtag_slow_scan_in(uint8_t out_offset, uint8_t in_offset);
+#define NULL        (void*)0;
 
-void jtag_scan_out(uint8_t out_offset);
-void jtag_slow_scan_out(uint8_t out_offset);
+/* High and Low byte of a word (uint16_t) */
+#define HI8(word)   (uint8_t)(((uint16_t)word >> 8) & 0xff)
+#define LO8(word)   (uint8_t)((uint16_t)word & 0xff)
 
-void jtag_scan_io(uint8_t out_offset, uint8_t in_offset);
-void jtag_slow_scan_io(uint8_t out_offset, uint8_t in_offset);
 
-void jtag_clock_tck(uint16_t count);
-void jtag_slow_clock_tck(uint16_t count);
-void jtag_clock_tms(uint8_t count, uint8_t sequence);
-void jtag_slow_clock_tms(uint8_t count, uint8_t sequence);
-
-uint16_t  jtag_get_signals(void);
-void jtag_set_signals(uint8_t low, uint8_t high);
-
-void jtag_configure_tck_delay(uint8_t scan_in, uint8_t scan_out,
-    uint8_t scan_io, uint8_t tck, uint8_t tms);
-
-#endif
+#endif  // __COMMON_H

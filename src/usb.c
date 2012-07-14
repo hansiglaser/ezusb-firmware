@@ -22,27 +22,29 @@
 /**
  * @file Defines USB descriptors, interrupt routines and helper functions.
  * To minimize code size, we make the following assumptions:
- *  - The OpenULINK has exactly one configuration
+ *  - the device has exactly one configuration
  *  - and exactly one alternate setting
  *
  * Therefore, we do not have to support the Set Configuration USB request.
  */
 
 #include "usb.h"
+#include "common.h"
 #include "delay.h"
 #include "io.h"
 
 /// USB idVendor value
-#define ID_VENDOR   0xC251
+#define ID_VENDOR   0x1234
 /// USB idProduct value
-#define ID_PRODUCT  0x2710
+#define ID_PRODUCT  0x5678
 /// USB bcdDevice value, Release Number (in BCD)
 #define BCD_DEVICE  0x0100
 
 /* Also update external declarations in "include/usb.h" if making changes to
  * these variables! */
-volatile bool EP2_out = 0;
-volatile bool EP2_in  = 0;
+volatile bool Semaphore_Command = 0;
+volatile bool Semaphore_EP2_out = 0;
+volatile bool Semaphore_EP2_in  = 0;
 
 volatile __xdata __at 0x7FE8 struct setup_data setup_data;
 
@@ -94,7 +96,7 @@ __code struct usb_config_descriptor config_descriptor = {
   /* .bConfigurationValue = */ 1,
   /* .iConfiguration = */      4,     /* String describing this configuration */
   /* .bmAttributes = */        USB_CONFIG_ATTRIB_RESERVED,  /* Only MSB set according to USB spec */
-  /* .MaxPower = */            50     /* 100 mA */
+  /* .MaxPower = */            50     /* 50*2 = 100 mA */
 };
 
 __code struct usb_interface_descriptor interface_descriptor00 = {
@@ -106,7 +108,7 @@ __code struct usb_interface_descriptor interface_descriptor00 = {
   /* .bInterfaceClass = */     USB_CLASS_VENDOR_SPEC,
   /* .bInterfaceSubclass = */  USB_CLASS_VENDOR_SPEC,
   /* .bInterfaceProtocol = */  USB_PROTOCOL_VENDOR_SPEC,
-  /* .iInterface = */          0
+  /* .iInterface = */          5
 };
 
 __code struct usb_endpoint_descriptor Bulk_EP2_IN_Endpoint_Descriptor = {
@@ -133,30 +135,30 @@ __code struct usb_language_descriptor language_descriptor = {
   /* .wLANGID = */             {USB_LANG_ENGLISH_US}
 };
 
-__code struct usb_string_descriptor strManufacturer =
-    STR_DESCR(9,'O','p','e','n','U','L','I','N','K');
+/* String Descriptors */
 
-__code struct usb_string_descriptor strProduct      =
-    STR_DESCR(9,'O','p','e','n','U','L','I','N','K');
+__code struct usb_string_descriptor strManufacturer  = STR_DESCR(13, 'J','o','h','a','n','n',' ','G','l','a','s','e','r');
 
-__code struct usb_string_descriptor strSerialNumber =
-    STR_DESCR(6, '0','0','0','0','0','1');
+__code struct usb_string_descriptor strProduct       = STR_DESCR(15, 'E','Z','-','U','S','B',' ','F','i','r','m','w','a','r','e');
 
-__code struct usb_string_descriptor strConfigDescr  =
-    STR_DESCR(12, 'J','T','A','G',' ','A','d','a','p','t','e','r');
+__code struct usb_string_descriptor strSerialNumber  = STR_DESCR( 6, '0','0','0','0','0','1');
+
+__code struct usb_string_descriptor strConfigDescr   = STR_DESCR( 8, 'M','y','C','o','n','f','i','g');
+
+__code struct usb_string_descriptor strInterface     = STR_DESCR(11, 'M','y','I','n','t','e','r','f','a','c','e');
 
 /* Table containing pointers to string descriptors */
-__code struct usb_string_descriptor* __code en_string_descriptors[4] = {
+__code struct usb_string_descriptor* __code en_string_descriptors[5] = {
   &strManufacturer,
   &strProduct,
   &strSerialNumber,
-  &strConfigDescr
+  &strConfigDescr,
+  &strInterface
 };
 
 static void usb_handle_setup_data(void);
 
-void sudav_isr(void) __interrupt SUDAV_ISR
-{
+void sudav_isr(void) __interrupt SUDAV_ISR {
   CLEAR_IRQ();
 
   usb_handle_setup_data();
@@ -180,7 +182,7 @@ void ep1out_isr(void)   __interrupt EP1OUT_ISR   { }
  * EP2 IN: called after the transfer from uC->Host has finished: we sent data
  */
 void ep2in_isr(void)    __interrupt EP2IN_ISR { 
-  EP2_in = 1;
+  Semaphore_EP2_in = 1;
 
   CLEAR_IRQ();
   IN07IRQ = IN2IR;     // Clear OUT2 IRQ
@@ -190,7 +192,7 @@ void ep2in_isr(void)    __interrupt EP2IN_ISR {
  * EP2 OUT: called after the transfer from Host->uC has finished: we got data
  */
 void ep2out_isr(void)   __interrupt EP2OUT_ISR {
-  EP2_out = 1;
+  Semaphore_EP2_out = 1;
 
   CLEAR_IRQ();
   OUT07IRQ = OUT2IR;    // Clear OUT2 IRQ
@@ -215,8 +217,7 @@ void ep7out_isr(void)   __interrupt EP7OUT_ISR   { }
  *  specified in \a ep
  * @return on failure: NULL
  */
-static __xdata uint8_t* usb_get_endpoint_cs_reg(uint8_t ep)
-{
+static __xdata uint8_t* usb_get_endpoint_cs_reg(uint8_t ep) {
   /* Mask direction bit */
   uint8_t ep_num = ep & USB_ENDPOINT_ADDRESS_MASK;
 
@@ -250,8 +251,7 @@ static __xdata uint8_t* usb_get_endpoint_cs_reg(uint8_t ep)
   return NULL;
 }
 
-static void usb_reset_data_toggle(uint8_t ep)
-{
+static void usb_reset_data_toggle(uint8_t ep) {
   /* TOGCTL register:
      +----+-----+-----+------+-----+-------+-------+-------+
      | Q  |  S  |  R  |  IO  |  0  |  EP2  |  EP1  |  EP0  |
@@ -277,8 +277,7 @@ static void usb_reset_data_toggle(uint8_t ep)
  * @return on success: true
  * @return on failure: false
  */
-static bool usb_handle_get_status(void)
-{
+static bool usb_handle_get_status(void) {
   uint8_t *ep_cs;
 
   switch (setup_data.bmRequestType) {
@@ -330,8 +329,7 @@ static bool usb_handle_get_status(void)
  * @return on success: true
  * @return on failure: false
  */
-static bool usb_handle_clear_feature(void)
-{
+static bool usb_handle_clear_feature(void) {
   __xdata uint8_t *ep_cs;
 
   switch (setup_data.bmRequestType) {
@@ -366,8 +364,7 @@ static bool usb_handle_clear_feature(void)
  * @return on success: true
  * @return on failure: false
  */
-static bool usb_handle_set_feature(void)
-{
+static bool usb_handle_set_feature(void) {
   __xdata uint8_t *ep_cs;
 
   switch (setup_data.bmRequestType) {
@@ -404,8 +401,7 @@ static bool usb_handle_set_feature(void)
  * @return on success: true
  * @return on failure: false
  */
-static bool usb_handle_get_descriptor(void)
-{
+static bool usb_handle_get_descriptor(void) {
   __xdata uint8_t descriptor_type;
   __xdata uint8_t descriptor_index;
 
@@ -448,8 +444,7 @@ static bool usb_handle_get_descriptor(void)
 /**
  * Handle SET_INTERFACE request.
  */
-static void usb_handle_set_interface(void)
-{
+static void usb_handle_set_interface(void) {
   /* Reset Data Toggle */
   usb_reset_data_toggle(USB_DIR_IN  | 2);
   usb_reset_data_toggle(USB_DIR_OUT | 2);
@@ -465,8 +460,7 @@ static void usb_handle_set_interface(void)
 /**
  * Handle the arrival of a USB Control Setup Packet.
  */
-static void usb_handle_setup_data(void)
-{
+static void usb_handle_setup_data(void) {
   switch (setup_data.bRequest) {
     case USB_REQ_GET_STATUS:
       if (!usb_handle_get_status()) {
@@ -500,15 +494,15 @@ static void usb_handle_setup_data(void)
       }
       break;
     case USB_REQ_GET_CONFIGURATION:
-      /* OpenULINK has only one configuration, return its index */
+      /* we have only one configuration, return its index */
       IN0BUF[0] = config_descriptor.bConfigurationValue;
       IN0BC = 1;
       break;
     case USB_REQ_SET_CONFIGURATION:
-      /* OpenULINK has only one configuration -> nothing to do */
+      /* we have only one configuration -> nothing to do */
       break;
     case USB_REQ_GET_INTERFACE:
-      /* OpenULINK only has one interface, return its number */
+      /* we have only one interface, return its number */
       IN0BUF[0] = interface_descriptor00.bInterfaceNumber;
       IN0BC = 1;
       break;
@@ -519,7 +513,8 @@ static void usb_handle_setup_data(void)
       /* Isochronous endpoints not used -> nothing to do */
       break;
     default:
-      /* Any other requests: do nothing */
+      /* Any other requests: notify listener */
+      Semaphore_Command = 1;
       break;
   }
 }
@@ -559,3 +554,4 @@ void usb_init(void) {
   delay_ms(200);
   USBCS = DISCOE | RENUM;
 }
+

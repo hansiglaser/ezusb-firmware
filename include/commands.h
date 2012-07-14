@@ -1,6 +1,4 @@
 /***************************************************************************
- *   Copyright (C) 2011 by Martin Schmoelzer                               *
- *   <martin.schmoelzer@student.tuwien.ac.at>                              *
  *   Copyright (C) 2012 by Johann Glaser <Johann.Glaser@gmx.at>            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,9 +17,39 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef __PROTOCOL_H
-#define __PROTOCOL_H
+#ifndef __COMMANDS_H
+#define __COMMANDS_H
+
+#include <stdbool.h>
+#include <stdint.h>
+
+/*
+ * Command definition
+ */
+#define CMD_GET_VERSION          0x80
+#define CMD_GET_VERSION_STRING   0x81
+#define CMD_GET_STATUS           0x82
+// ... add further commands here and handlers in HandleCmd() in commands.c ...
+// 0xA0 .. 0xAF are reserved by Anchor / Cypress
+
+/* Command: GetVersion ******************************************************/
+typedef struct {
+  uint16_t Firmware;     // Firmware Version
+  // ... add further fields, e.g. version of linked libraries, external
+  // devices, ... and fill these fields in GetVersion() in commands.c ...
+} TGetVersion;
+
+#define FIRMWARE_VERSION 0x0001   // 0x00 . 0x01 -> 0.1
+
+/* Command: GetStatus *******************************************************/
+typedef struct {
+  uint8_t  MyStatus;     // dummy field
+  // ... add further fields with various status information and fill these
+  // fields in GetStatus() in commands.c ...
+} TGetStatus;
+
+/* Common *******************************************************************/
 
 void command_loop(void);
 
-#endif
+#endif  // __COMMANDS_H

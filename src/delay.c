@@ -23,8 +23,7 @@
 
 #define NOP {__asm nop __endasm;}
 
-void delay_5us(void)
-{
+void delay_5us(void) {
   NOP;
 }
 
@@ -34,8 +33,7 @@ void delay_1ms(void) {
   for (i = 0; i < 598; i++);
 }
 
-void delay_us(uint16_t delay)
-{
+void delay_us(uint16_t delay) {
   uint16_t i;
   uint16_t maxcount = (delay / 5);
 
@@ -44,8 +42,7 @@ void delay_us(uint16_t delay)
   }
 }
 
-void delay_ms(uint16_t delay)
-{
+void delay_ms(uint16_t delay) {
   uint16_t i;
 
   for (i = 0; i < delay; i++) {

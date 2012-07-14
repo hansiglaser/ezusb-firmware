@@ -21,7 +21,7 @@
 
 #include "io.h"
 #include "usb.h"
-#include "protocol.h"
+#include "commands.h"
 
 /**
  * Interrupt Vectors
@@ -68,36 +68,36 @@ extern void ep6out_isr(void)   __interrupt;
 extern void ep7in_isr(void)    __interrupt;
 extern void ep7out_isr(void)   __interrupt;
 
-void io_init(void)
-{
+static void io_init(void) {
   /* PORTxCFG register bits select alternate functions (1 == alternate function,
    *                                                    0 == standard I/O)
    * OEx register bits turn on/off output buffer (1 == output, 0 == input)
    * OUTx register bits determine pin state of output
    * PINx register bits reflect pin state (high == 1, low == 0) */
 
-  /* PORT A */
-  PORTACFG = PIN_OE;
-  OEA = PIN_U_OE | PIN_OE | PIN_RUN_LED | PIN_COM_LED;
-  OUTA = PIN_RUN_LED | PIN_COM_LED;
+  /* Port A: ... */
+  PORTACFG = PORTA_SPECIAL_FUNC;
+  OEA      = PORTA_OE;
+  OUTA     = PORTA_INIT;
 
-  /* PORT B */
-  PORTBCFG = 0x00;
-  OEB = PIN_TDI | PIN_TMS | PIN_TCK | PIN_TRST | PIN_BRKIN | PIN_RESET
-      | PIN_OCDSE;
+  /* Port B: ... */
+  PORTBCFG = PORTB_SPECIAL_FUNC;
+  OEB      = PORTB_OE;
+  OUTB     = PORTB_INIT;
 
-  /* TRST and RESET signals are low-active but inverted by hardware, so we clear
-   * these signals here! */
-  OUTB = 0x00;
+  /* Port C: ... */
+  PORTCCFG = PORTC_SPECIAL_FUNC;
+  OEC      = PORTC_OE;
+  OUTC     = PORTC_INIT;
 
-  /* PORT C */
-  PORTCCFG = PIN_WR;
-  OEC = PIN_TXD0 | PIN_WR;
-  OUTC = 0x00;
+  /* Enable CLK24 output */
+  CPUCS |= CLK24OE;
+
+  /* External Memory Interface Wait States for Fast Read */
+  CKCON = 0x00;      // CKCON[2..0]: 0 wait states
 }
 
-int main(void)
-{
+int main(void) {
   io_init();
   usb_init();
 

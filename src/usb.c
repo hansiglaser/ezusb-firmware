@@ -34,9 +34,9 @@
 #include "io.h"
 
 /// USB idVendor value
-#define ID_VENDOR   0x1234
+#define ID_VENDOR   0xFFF0
 /// USB idProduct value
-#define ID_PRODUCT  0x5678
+#define ID_PRODUCT  0x0002
 /// USB bcdDevice value, Release Number (in BCD)
 #define BCD_DEVICE  0x0100
 

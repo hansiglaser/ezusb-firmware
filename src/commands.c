@@ -73,7 +73,7 @@ void GetVersionString() {
 
   // copy version string
   Src = VersionString;
-  Dst = IN2BUF;
+  Dst = IN0BUF;
   b = 0;
   while (*Src) {
     *Dst++ = *Src++;

@@ -105,7 +105,7 @@ else
 endif
 
 clean:
-	rm -f *.asm *.lst *.rel *.rst *.sym *.ihx *.lnk *.map *.mem
+	rm -f *.asm *.lst *.rel *.rst *.sym *.ihx *.lnk *.map *.mem *.cdb *.lk *.omf
 
 hex: $(IHXFILE)
 	$(PACKIHX) $(IHXFILE) > $(basename $(IHXFILE)).hex

@@ -740,4 +740,23 @@ SFRX(IN13ADDR,      0x7FFD);
 SFRX(IN14ADDR,      0x7FFE);
 SFRX(IN15ADDR,      0x7FFF);
 
+/***************************************************************************/
+/**************************** Interrupt Vectors ****************************/
+/***************************************************************************/
+
+/* Interrupt numbers: address = (number * 8) + 3 */
+#define IE0_VECTOR      0       /* 0x03 external interrupt 0 */
+#define TF0_VECTOR      1       /* 0x0b timer 0 */
+#define IE1_VECTOR      2       /* 0x13 external interrupt 1 */
+#define TF1_VECTOR      3       /* 0x1b timer 1 */
+#define SI0_VECTOR      4       /* 0x23 serial port 0 */
+#define TF2_VECTOR      5       /* 0x2b timer 2 */
+#define PFI_VECTOR      6       /* 0x33 Wakeup# pin or USB Resume */
+#define SI1_VECTOR      7       /* 0x3b serial port 1 */
+#define USB_VECTOR      8       /* 0x43 USB sub-interrupts */
+#define I2C_VECTOR      9       /* 0x4b I2C transfer */
+#define IE4_VECTOR     10       /* 0x53 IN4 pin */
+#define IE5_VECTOR     11       /* 0x5b IN5# pin */
+#define IE6_VECTOR     12       /* 0x63 IN6 pin */
+
 #endif

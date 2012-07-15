@@ -21,6 +21,7 @@
 
 #include "io.h"
 #include "usb.h"
+#include "i2c.h"
 #include "commands.h"
 
 /**
@@ -43,7 +44,7 @@
  * ISR vector (here 13) to "reserve" that space.
  */
 // I2C
-//extern void i2c_isr(void)      __interrupt I2C_VECT;
+//extern void i2c_isr(void)      __interrupt I2C_VECTOR;
 // USB
 extern void sudav_isr(void)    __interrupt SUDAV_ISR;
 extern void sof_isr(void)      __interrupt;
@@ -100,6 +101,7 @@ static void io_init(void) {
 int main(void) {
   io_init();
   usb_init();
+  i2c_init();
 
   /* Globally enable interrupts */
   EA = 1;

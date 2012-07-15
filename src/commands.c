@@ -23,6 +23,7 @@
 #include "commands.h"
 #include "common.h"
 #include "usb.h"
+#include "i2c.h"
 #include "io.h"
 
 // local copy of the information we got in the SETUPDAT packet

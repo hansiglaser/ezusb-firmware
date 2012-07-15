@@ -68,11 +68,12 @@ LDFLAGS = --code-loc 0x0000 --code-size $(CODE_SIZE) --xram-loc $(XRAM_LOC) \
           --xram-size $(XRAM_SIZE) --iram-size 256 --model-small
 
 # list of base object files
-OBJECTS = main.rel usb.rel commands.rel delay.rel USBJmpTb.rel
+OBJECTS = main.rel usb.rel commands.rel delay.rel i2c.rel USBJmpTb.rel
 HEADERS = $(INCLUDE_DIR)/usb.h          \
           $(INCLUDE_DIR)/commands.h     \
-          $(INCLUDE_DIR)/common.h     \
+          $(INCLUDE_DIR)/common.h       \
           $(INCLUDE_DIR)/delay.h        \
+          $(INCLUDE_DIR)/i2c.h          \
           $(INCLUDE_DIR)/reg_ezusb.h    \
           $(INCLUDE_DIR)/io.h
 

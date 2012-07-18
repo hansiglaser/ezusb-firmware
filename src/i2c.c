@@ -39,6 +39,11 @@ volatile static uint8_t          i2c_length;
 volatile static __xdata uint8_t* i2c_ptr;
 volatile static uint8_t          i2c_count;
 
+// Forward Declarations
+
+static void i2c_wait_stop();
+static I2C_Status i2c_wait_finished();
+
 /*****************************************************************************/
 /***  Driver Functions  ******************************************************/
 /*****************************************************************************/
